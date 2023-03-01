@@ -9,6 +9,7 @@ import edu.wpi.first.util.WPIUtilJNI;
 import java.io.IOException;
 
 public class Main {
+    private DoublePublisher dpl;
     private static final int HUB_PORT = 0;
     public static final int ENC_RESOLUTION = 96;
     public static final double ENC_TO_RADS = 1.0 / ENC_RESOLUTION * 2 * Math.PI;
@@ -29,11 +30,11 @@ public class Main {
 
     private void run() {
         NetworkTableInstance inst = NetworkTableInstance.getDefault();
-        NetworkTable table = inst.getTable("phidget");
+        var topic = inst.getDoubleTopic("phidget/dial");
+        topic.setPersistent(true);
+        dpl = topic.publish();
+        dpl.setDefault(0.0);
 
-        enc.addPositionChangeListener(
-                posEvent ->
-                        table.putValue("dial", NetworkTableValue.makeDouble(posEvent.getPositionChange()*ENC_TO_RADS))
-        );
+        enc.addPositionChangeListener(posEvent -> dpl.set(posEvent.getPositionChange()*ENC_TO_RADS));
     }
 }
